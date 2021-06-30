@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "iic.h": "c",
+        "stm32f0xx_ll_utils.h": "c",
+        "main.h": "c"
+    }
+}

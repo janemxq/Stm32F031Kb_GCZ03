@@ -3,66 +3,71 @@
 <pre>
 <h1>礦ision Build Log</h1>
 <h2>Tool Versions:</h2>
-IDE-Version: μVision V5.25.2.0
-Copyright (C) 2018 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: 1 8615621, HP Inc., LIC=CZLZX-H89DA-IIE5V-PDQTE-TI5FE-MT5HN
+IDE-Version: μVision V5.30.0.0
+Copyright (C) 2020 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 1 8615621, HP Inc., LIC=----
  
 Tool Versions:
-Toolchain:       MDK-ARM Plus  Version: 5.25.2.0
-Toolchain Path:  C:\Keil_v525\ARM\ARMCC\Bin
+Toolchain:       MDK-Lite  Version: 5.30.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
 C Compiler:      Armcc.exe V5.06 update 6 (build 750)
 Assembler:       Armasm.exe V5.06 update 6 (build 750)
 Linker/Locator:  ArmLink.exe V5.06 update 6 (build 750)
 Library Manager: ArmAr.exe V5.06 update 6 (build 750)
 Hex Converter:   FromElf.exe V5.06 update 6 (build 750)
-CPU DLL:         SARMCM3.DLL V5.25.2.0
-Dialog DLL:      DARMCM1.DLL V1.19.1.0
+CPU DLL:         SARMCM3.DLL V5.30.0.0
+Dialog DLL:      DARMCM1.DLL V1.19.3.0
 Target DLL:      Segger\JL2CM3.dll V2.99.34.0
-Dialog DLL:      TARMCM1.DLL V1.14.0.0
+Dialog DLL:      TARMCM1.DLL V1.14.2.0
  
 <h2>Project:</h2>
 D:\Repos\Stm32\demo2(031k6)_GCZ03\Demo2\MDK-ARM\Demo2.uvprojx
-Project File Date:  06/30/2021
+Project File Date:  07/05/2021
 
 <h2>Output:</h2>
-*** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v525\ARM\ARMCC\Bin'
+*** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Demo2'
 compiling main.c...
-../Core/Src/main.c(130): warning:  #223-D: function "sprintf" declared implicitly
+../Core/Src/main.c(131): warning:  #223-D: function "sprintf" declared implicitly
           sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv",lADValue[0], ADValues[0],lADValue[1],ADValues[1]);
-../Core/Src/main.c(131): warning:  #223-D: function "strlen" declared implicitly
+../Core/Src/main.c(132): warning:  #223-D: function "strlen" declared implicitly
   			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
-../Core/Src/main.c(86): warning:  #177-D: variable "CurrentChannelValue"  was declared but never referenced
+../Core/Src/main.c(87): warning:  #177-D: variable "CurrentChannelValue"  was declared but never referenced
   	u8 CurrentChannelValue=1;		//当前选择的是哪个通道,处于1~2 
-../Core/Src/main.c(154): warning:  #188-D: enumerated type mixed with another type
+../Core/Src/main.c(155): warning:  #188-D: enumerated type mixed with another type
     ad7799[0].channel=0;
-../Core/Src/main.c(187): warning:  #188-D: enumerated type mixed with another type
+../Core/Src/main.c(188): warning:  #188-D: enumerated type mixed with another type
   		    AD7799_SetChannel2(&ad7799[0],ChannelBuf[i]);//通道设置.		0~1
-../Core/Src/main.c(201): warning:  #223-D: function "sprintf" declared implicitly
-          sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",lADValue[0], ADValues[0],lADValue[1],ADValues[1],1<<ad7799[0].gain);
-../Core/Src/main.c(202): warning:  #223-D: function "strlen" declared implicitly
-  			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
-../Core/Src/main.c(147): warning:  #177-D: variable "CurrentChannelValue"  was declared but never referenced
+../Core/Src/main.c(202): warning:  #223-D: function "sprintf" declared implicitly
+          sprintf(TxBuff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",lADValue[0], ADValues[0],lADValue[1],ADValues[1],1<<ad7799[0].gain);
+../Core/Src/main.c(203): warning:  #223-D: function "strlen" declared implicitly
+  			  HAL_UART_Transmit(&huart1,(uint8_t *)TxBuff,strlen(TxBuff),1000);
+../Core/Src/main.c(148): warning:  #177-D: variable "CurrentChannelValue"  was declared but never referenced
   	u8 CurrentChannelValue=1;		//当前选择的是哪个通道,处于1~2 
-../Core/Src/main.c(220): warning:  #520-D: initialization with "{...}" expected for aggregate object
+../Core/Src/main.c(221): warning:  #520-D: initialization with "{...}" expected for aggregate object
   	unsigned long lData[2]=0;
-../Core/Src/main.c(219): warning:  #177-D: variable "i"  was declared but never referenced
+../Core/Src/main.c(266): warning:  #223-D: function "sprintf" declared implicitly
+          sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",123, 12.3,456,45.6,2);
+../Core/Src/main.c(266): error:  #20: identifier "buff" is undefined
+          sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",123, 12.3,456,45.6,2);
+../Core/Src/main.c(267): warning:  #223-D: function "strlen" declared implicitly
+  			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
+../Core/Src/main.c(219): warning:  #177-D: variable "data"  was declared but never referenced
+    uint8_t data[3]={1,2,3};
+../Core/Src/main.c(220): warning:  #177-D: variable "i"  was declared but never referenced
   	uint16_t i=0;
-../Core/Src/main.c(220): warning:  #177-D: variable "lData"  was declared but never referenced
+../Core/Src/main.c(221): warning:  #177-D: variable "lData"  was declared but never referenced
   	unsigned long lData[2]=0;
-../Core/Src/main.c: 11 warnings, 0 errors
-linking...
-Program Size: Code=10056 RO-data=232 RW-data=16 ZI-data=1384  
-FromELF: creating hex file...
-"Demo2\Demo2.axf" - 0 Error(s), 11 Warning(s).
+../Core/Src/main.c: 14 warnings, 1 error
+"Demo2\Demo2.axf" - 1 Error(s), 14 Warning(s).
 
 <h2>Software Packages used:</h2>
 
 Package Vendor: ARM
-                http://www.keil.com/pack/ARM.CMSIS.5.3.0.pack
-                ARM.CMSIS.5.3.0
+                http://www.keil.com/pack/ARM.CMSIS.5.7.0.pack
+                ARM.CMSIS.5.7.0
                 CMSIS (Cortex Microcontroller Software Interface Standard)
-   * Component: CORE Version: 5.1.1
+   * Component: CORE Version: 5.4.0
 
 Package Vendor: Keil
                 http://www.keil.com/pack/Keil.STM32F0xx_DFP.2.1.0.pack
@@ -71,12 +76,13 @@ Package Vendor: Keil
 
 <h2>Collection of Component include folders:</h2>
   .\RTE\_Demo2
-  C:\Keil_v525\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include
-  C:\Keil_v525\ARM\PACK\Keil\STM32F0xx_DFP\2.1.0\Drivers\CMSIS\Device\ST\STM32F0xx\Include
+  C:\Users\86156\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include
+  C:\Users\86156\AppData\Local\Arm\Packs\Keil\STM32F0xx_DFP\2.1.0\Drivers\CMSIS\Device\ST\STM32F0xx\Include
 
 <h2>Collection of Component Files used:</h2>
 
-   * Component: ARM::CMSIS:CORE:5.1.1
+   * Component: ARM::CMSIS:CORE:5.4.0
+Target not created.
 Build Time Elapsed:  00:00:01
 </pre>
 </body>

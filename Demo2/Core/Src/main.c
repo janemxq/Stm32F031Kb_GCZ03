@@ -21,6 +21,7 @@
 #include "main.h"
 #include "AD7799.h"
 unsigned	char	buf[4] = {0,0,0,0};
+unsigned	char  TxBuff[256];
 AD7799    ad7799[3];
 #define   AD7799_GAIN  128					//如果增益为64倍,则这里改为64
 #define   AD7799_CHIP_GAIN  AD7799_GAIN_2 	//如果增益为64倍,则这里改为AD7799_GAIN_64
@@ -149,7 +150,7 @@ void AD7799_test2()
 	long lADValue[2];
 	u8 ChannelBuf[2]={AD7799_CH_AIN1P_AIN1M,AD7799_CH_AIN2P_AIN2M};		//通道1  通道2
 	double ADValues[2];
-	char buff[256];
+	
 	/*ad7799初始化*/
   ad7799[0].channel=0;
   ad7799[0].CSPort=CS1_GPIO_Port;
@@ -198,8 +199,8 @@ void AD7799_test2()
 			}
 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
 		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
-        sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",lADValue[0], ADValues[0],lADValue[1],ADValues[1],1<<ad7799[0].gain);
-			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
+        sprintf(TxBuff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",lADValue[0], ADValues[0],lADValue[1],ADValues[1],1<<ad7799[0].gain);
+			  HAL_UART_Transmit(&huart1,(uint8_t *)TxBuff,strlen(TxBuff),1000);
 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
 //		LED0 =!LED0;
@@ -250,7 +251,7 @@ int main(void)
 //		 // HAL_UART_Transmit(&huart1,data,3,1000);
 //		  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 //	}	
-  AD7799_test2();
+  // AD7799_test2();
 	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2,GPIO_PIN_SET);
   /* USER CODE END 2 */
 
@@ -260,8 +261,10 @@ int main(void)
   {
     /* USER CODE END WHILE */
 			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
-      		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
-		 HAL_UART_Transmit(&huart1,data,3,1000);
+      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
+		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
+        sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",123, 12.3,456,45.6,2);
+			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 			HAL_Delay(1000);
     /* USER CODE BEGIN 3 */

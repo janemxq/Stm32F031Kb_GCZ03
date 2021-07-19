@@ -24,7 +24,7 @@ unsigned	char	buf[4] = {0,0,0,0};
 AD7799    ad7799[3];
 #define   AD7799_GAIN  128					//如果增益为64倍,则这里改为64
 #define   AD7799_CHIP_GAIN  AD7799_GAIN_2 	//如果增益为64倍,则这里改为AD7799_GAIN_64
-
+123
 #define   AD7799_RefmV    3300				//基准电压 3300mV	
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

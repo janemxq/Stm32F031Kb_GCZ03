@@ -86,6 +86,8 @@ void Error_Handler(void);
 #define SCK3_GPIO_Port GPIOB
 #define CS3_Pin GPIO_PIN_7
 #define CS3_GPIO_Port GPIOB
+#define RS485_Pin GPIO_PIN_8
+#define RS485_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

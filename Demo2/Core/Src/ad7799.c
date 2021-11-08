@@ -565,9 +565,10 @@ void AD7799_Calibrate(void)//通道校准
  */
 HAL_StatusTypeDef AD7799_Init2(AD7799 *ad7799) {
 	uint32_t a=AD7799_GetRegisterValue2(ad7799, AD7799_REG_ID, 1);
+	HAL_Delay(500);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
-			  HAL_UART_Transmit(&huart1,(uint8_t *)&a,4,1000);
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
+	HAL_UART_Transmit(&huart1,(uint8_t *)&a,4,1000);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 	if ((a & 0x0F) != AD7799_ID) {
 		return HAL_ERROR;
 	} else {
@@ -587,7 +588,7 @@ void AD7799_Reset2(AD7799 *ad7799) {
 	HAL_GPIO_WritePin(ad7799->CSPort, ad7799->CSPin, GPIO_PIN_SET);
 
 	ad7799->mode = AD7799_MODE_CONT;
-	ad7799->gain = AD7799_GAIN_2;
+	ad7799->gain = AD7799_GAIN_128;
 	ad7799->channel = AD7799_CH_AIN1P_AIN1M;
 	ad7799->polarity = AD7799_BIPOLAR;
 	ad7799->rate = AD7799_RATE_4_17HZ_74DB;

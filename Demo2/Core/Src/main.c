@@ -21,6 +21,8 @@
 #include "main.h"
 #include "AD7799.h"
 unsigned	char	buf[4] = {0,0,0,0};
+unsigned	char  TxBuff[256];
+unsigned	char  RxBuff[256];
 AD7799    ad7799[3];
 #define   AD7799_GAIN  128					//如果增益为64倍,则这里改为64
 #define   AD7799_CHIP_GAIN  AD7799_GAIN_2 	//如果增益为64倍,则这里改为AD7799_GAIN_64
@@ -125,11 +127,11 @@ void AD7799_test()
 			  lADValue[i]=AD7799_GetRegisterValue(AD7799_REG_DATA,3);//0:通道1 1:通道2
 				ADValues[i]=  analyzeAD7799_Data(lADValue[i]);
 			}
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
+		    HAL_GPIO_WritePin(RS485_GPIO_Port, RS485_Pin,GPIO_PIN_SET);
 		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
-        sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv",lADValue[0], ADValues[0],lADValue[1],ADValues[1]);
-			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
+        sprintf(TxBuff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv",lADValue[0], ADValues[0],lADValue[1],ADValues[1]);
+			  HAL_UART_Transmit(&huart1,(uint8_t *)TxBuff,strlen(TxBuff),1000);
+		    HAL_GPIO_WritePin(RS485_GPIO_Port, RS485_Pin,GPIO_PIN_RESET);
 		
 				
 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
@@ -146,10 +148,12 @@ void AD7799_test2()
 	
 	u8 CurrentChannelValue=1;		//当前选择的是哪个通道,处于1~2 
 	u8 i;
-	long lADValue[2];
+  u8 j;
+  u8 selChip;
+	long lADValue[3][2];
 	u8 ChannelBuf[2]={AD7799_CH_AIN1P_AIN1M,AD7799_CH_AIN2P_AIN2M};		//通道1  通道2
-	double ADValues[2];
-	char buff[256];
+	double ADValues[3][2];
+	
 	/*ad7799初始化*/
   ad7799[0].channel=0;
   ad7799[0].CSPort=CS1_GPIO_Port;
@@ -160,50 +164,100 @@ void AD7799_test2()
   ad7799[0].DOPin=DO1_Pin;
   ad7799[0].SCKPort=SCK1_GPIO_Port;
   ad7799[0].SCKPin=SCK1_Pin;
-	//AD7799_gpio_init();
+  ad7799[1].channel=0;
+  ad7799[1].CSPort=CS2_GPIO_Port;
+  ad7799[1].CSPin=CS2_Pin;
+  ad7799[1].DIPort=DI2_GPIO_Port;
+  ad7799[1].DIPin=DI2_Pin;
+  ad7799[1].DOPort=DO2_GPIO_Port;
+  ad7799[1].DOPin=DO2_Pin;
+  ad7799[1].SCKPort=SCK2_GPIO_Port;
+  ad7799[1].SCKPin=SCK2_Pin;
+  ad7799[2].channel=0;
+  ad7799[2].CSPort=CS3_GPIO_Port;
+  ad7799[2].CSPin=CS3_Pin;
+  ad7799[2].DIPort=DI3_GPIO_Port;
+  ad7799[2].DIPin=DI3_Pin;
+  ad7799[2].DOPort=DO3_GPIO_Port;
+  ad7799[2].DOPin=DO3_Pin;
+  ad7799[2].SCKPort=SCK3_GPIO_Port;
+  ad7799[2].SCKPin=SCK3_Pin;
   AD7799_Reset2(&ad7799[0]);
+  AD7799_Reset2(&ad7799[1]);
+  AD7799_Reset2(&ad7799[2]);
 	while(AD7799_Init2(&ad7799[0]))
 	{
 			//LED0 = 0;
 			HAL_Delay(50);
 	}	
+  while(AD7799_Init2(&ad7799[1]))
+	{
+			//LED0 = 0;
+			HAL_Delay(50);
+	}	
+  while(AD7799_Init2(&ad7799[2]))
+	{
+			//LED0 = 0;
+			HAL_Delay(50);
+	}	
+  AD7799_Reset2(&ad7799[2]);
+  AD7799_Reset2(&ad7799[1]);
   AD7799_Reset2(&ad7799[0]);
 	//LED0 = 1;
 	//AD7799_Calibrate();
 // AD7799_SetBurnoutCurren(0);				//关闭BO
 	AD7799_SetGain2(&ad7799[0],ad7799[0].gain);		//128位
+	AD7799_SetGain2(&ad7799[1],ad7799[1].gain);		//128位
+	AD7799_SetGain2(&ad7799[2],ad7799[2].gain);		//128位
   AD7799_SetPolarity2(&ad7799[0],ad7799[0].polarity);//双极性
+  AD7799_SetPolarity2(&ad7799[1],ad7799[1].polarity);//双极性
+  AD7799_SetPolarity2(&ad7799[2],ad7799[2].polarity);//双极性
   // AD7799_SetRate2(&ad7799[0],ad7799[0].rate);//采样率 4.7hz
 	//AD7799_SetBurnoutCurren2(0);				//关闭BO
 	//AD7799_SetBufMode2(0);					//由于我们要测的电压低于100mV,所以设置为Unbuffered Mode
 	AD7799_SetMode2(&ad7799[0],ad7799[0].mode);		//持续模式
+	AD7799_SetMode2(&ad7799[1],ad7799[1].mode);		//持续模式
+	AD7799_SetMode2(&ad7799[2],ad7799[2].mode);		//持续模式
 	AD7799_SetReference2(&ad7799[0],1);					//关闭参考检测,因为我们的 AD7799_RefmV 参考电压低于0.5V
+	AD7799_SetReference2(&ad7799[1],1);					//关闭参考检测,因为我们的 AD7799_RefmV 参考电压低于0.5V
+	AD7799_SetReference2(&ad7799[2],1);					//关闭参考检测,因为我们的 AD7799_RefmV 参考电压低于0.5V
 	
 	while(1)
 	{
-	
-			for(i=0;i<2;i++)
-			{
-		    AD7799_SetChannel2(&ad7799[0],ChannelBuf[i]);//通道设置.		0~1
-				
-				HAL_Delay(10);
-				AD7799_GetRegisterValue2(&ad7799[0],AD7799_REG_DATA,3);//清空之前的AD
-				
-				while( !AD7799_Ready2(&ad7799[0]))		//1~2
-				{
-					HAL_Delay(1);
-				}
-			  lADValue[i]=AD7799_GetRegisterValue2(&ad7799[0],AD7799_REG_DATA,3);//0:通道1 1:通道2
-				ADValues[i]=  analyzeAD7799_Data(lADValue[i]);
-			}
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
-		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
-        sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",lADValue[0], ADValues[0],lADValue[1],ADValues[1],1<<ad7799[0].gain);
-			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
+	   for(j=0;j<3;j++)
+     {
+        for(i=0;i<2;i++)
+        {
+          AD7799_SetChannel2(&ad7799[j],ChannelBuf[i]);//通道设置.		0~1
+          
+          HAL_Delay(10);
+          AD7799_GetRegisterValue2(&ad7799[j],AD7799_REG_DATA,3);//清空之前的AD
+          
+          while( !AD7799_Ready2(&ad7799[j]))		//1~2
+          {
+            HAL_Delay(1);
+          }
+          lADValue[j][i]=AD7799_GetRegisterValue2(&ad7799[j],AD7799_REG_DATA,3);//0:通道1 1:通道2
+          ADValues[j][i]=  analyzeAD7799_Data(lADValue[j][i]);
+        }
+         
+        // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
+        HAL_UART_Receive(&huart1,RxBuff,1,1000);
+        selChip=RxBuff[0]-1;
+        if(selChip<=2)
+        {
+            HAL_GPIO_WritePin(RS485_GPIO_Port, RS485_Pin,GPIO_PIN_SET);
+            sprintf(TxBuff, "Chip=%d....AD1 = %x ,%.4f mv AD2= %x ,%.4f mv rate=%d",selChip+1,lADValue[selChip][0], ADValues[selChip][0],lADValue[selChip][1],ADValues[selChip][1],1<<ad7799[selChip].gain);
+            HAL_UART_Transmit(&huart1,(uint8_t *)TxBuff,strlen(TxBuff),1000);
+            HAL_GPIO_WritePin(RS485_GPIO_Port, RS485_Pin,GPIO_PIN_RESET);
+        }
+         
 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
 //		LED0 =!LED0;
+	    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
 		   HAL_Delay(1000);
+     }
+
 	}
 
 }
@@ -260,10 +314,17 @@ int main(void)
   {
     /* USER CODE END WHILE */
 			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
-      		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
-		 HAL_UART_Transmit(&huart1,data,3,1000);
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
+      // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
+		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
+        // sprintf(TxBuff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",123, 12.3,456,45.6,2);
+        // sprintf(TxBuff, "AD1 = 12 ,12 mv AD2= 34 ,34.5 mv rate=1");
+		// TxBuff[0]=1;TxBuff[1]=2;TxBuff[2]=3;TxBuff[3]=4;
+			  // HAL_UART_Transmit(&huart1,(uint8_t *)TxBuff,strlen(TxBuff),1000);
+		  HAL_GPIO_WritePin(RS485_GPIO_Port, RS485_Pin,GPIO_PIN_RESET);
+       HAL_UART_Receive(&huart1,RxBuff,1,1000);
 			HAL_Delay(1000);
+		  HAL_GPIO_WritePin(RS485_GPIO_Port, RS485_Pin,GPIO_PIN_SET);
+      HAL_UART_Transmit(&huart1,RxBuff,1,1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -404,15 +465,15 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DI3_Pin|LED1_Pin|LED2_Pin|GPIO_PIN_8
-                          |DI2_Pin|CS2_Pin|SCK2_Pin|SCK1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DI3_Pin|LED1_Pin|LED2_Pin|GPIO_PIN_8|CS2_Pin|RS485_Pin
+                          |DI2_Pin|SCK2_Pin|SCK1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, CS1_Pin|DI1_Pin|SCK3_Pin|CS3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : DI3_Pin LED1_Pin LED2_Pin PA8
                            DI2_Pin CS2_Pin SCK2_Pin */
-  GPIO_InitStruct.Pin = DI3_Pin|LED1_Pin|LED2_Pin|GPIO_PIN_8     ;
+  GPIO_InitStruct.Pin = DI3_Pin|LED1_Pin|LED2_Pin|RS485_Pin    ;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -430,6 +491,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(SCK1_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = SCK2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(SCK2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CS1_Pin */
   GPIO_InitStruct.Pin = CS1_Pin;
@@ -437,20 +503,32 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(CS1_GPIO_Port, &GPIO_InitStruct);
+   GPIO_InitStruct.Pin = CS2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  HAL_GPIO_Init(CS2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DO1_Pin */
   GPIO_InitStruct.Pin = DO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(DO1_GPIO_Port, &GPIO_InitStruct);
-
+ GPIO_InitStruct.Pin = DO2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(DO2_GPIO_Port, &GPIO_InitStruct); 
   /*Configure GPIO pin : DI1_Pin */
   GPIO_InitStruct.Pin = DI1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(DI1_GPIO_Port, &GPIO_InitStruct);
-
+  GPIO_InitStruct.Pin = DI2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(DI2_GPIO_Port, &GPIO_InitStruct);
   /*Configure GPIO pins : SCK3_Pin CS3_Pin */
   GPIO_InitStruct.Pin = SCK3_Pin|CS3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;

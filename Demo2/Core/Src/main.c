@@ -23,7 +23,7 @@
 unsigned	char	buf[4] = {0,0,0,0};
 AD7799    ad7799[3];
 #define   AD7799_GAIN  128					//如果增益为64倍,则这里改为64
-#define   AD7799_CHIP_GAIN  AD7799_GAIN_2 	//如果增益为64倍,则这里改为AD7799_GAIN_64
+#define   AD7799_CHIP_GAIN  AD7799_GAIN_128 	//如果增益为64倍,则这里改为AD7799_GAIN_64
 
 #define   AD7799_RefmV    3300				//基准电压 3300mV	
 /* Private includes ----------------------------------------------------------*/
@@ -74,6 +74,13 @@ double analyzeAD7799_Data(u32 data)
 {
 	long value = (data - 0X800000);
 	return (float)((float)value*(float)AD7799_RefmV)/(0X800000*AD7799_GAIN);	//0X800000:2.048V    0X000000:0V
+
+}
+//返回实际的称重值
+double analyzeAD7799_g(u32 data)
+{
+	long value = (data - 0X800000)-0xbf;
+	return (float)((float)value*(float)1000)/(0X00192e-0xbf);	//0X00192e:1000g的AD值    0xbf:0g的AD值
 
 }
 /* USER CODE END PFP */
@@ -134,7 +141,7 @@ void AD7799_test()
 				
 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
 
-//		LED0 =!LED0;
+		   // LED0 =!LED0;
 		   HAL_Delay(1000);
 	}
 
@@ -149,6 +156,7 @@ void AD7799_test2()
 	long lADValue[2];
 	u8 ChannelBuf[2]={AD7799_CH_AIN1P_AIN1M,AD7799_CH_AIN2P_AIN2M};		//通道1  通道2
 	double ADValues[2];
+	double ADValues_g[2];
 	char buff[256];
 	/*ad7799初始化*/
   ad7799[0].channel=0;
@@ -173,7 +181,7 @@ void AD7799_test2()
 // AD7799_SetBurnoutCurren(0);				//关闭BO
 	AD7799_SetGain2(&ad7799[0],ad7799[0].gain);		//128位
   AD7799_SetPolarity2(&ad7799[0],ad7799[0].polarity);//双极性
-  // AD7799_SetRate2(&ad7799[0],ad7799[0].rate);//采样率 4.7hz
+  AD7799_SetRate2(&ad7799[0],ad7799[0].rate);//采样率 4.17hz
 	//AD7799_SetBurnoutCurren2(0);				//关闭BO
 	//AD7799_SetBufMode2(0);					//由于我们要测的电压低于100mV,所以设置为Unbuffered Mode
 	AD7799_SetMode2(&ad7799[0],ad7799[0].mode);		//持续模式
@@ -195,14 +203,17 @@ void AD7799_test2()
 				}
 			  lADValue[i]=AD7799_GetRegisterValue2(&ad7799[0],AD7799_REG_DATA,3);//0:通道1 1:通道2
 				ADValues[i]=  analyzeAD7799_Data(lADValue[i]);
+				ADValues_g[i]=  analyzeAD7799_g(lADValue[i]);
 			}
+      	HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
 		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
-        sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv rate=%d",lADValue[0], ADValues[0],lADValue[1],ADValues[1],1<<ad7799[0].gain);
+        sprintf(buff, "AD2= %x ,%.3f mv %.1f g gain=%d",
+        lADValue[1], ADValues[1],ADValues_g[1],1<<ad7799[1].gain);
 			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
-//		LED0 =!LED0;
+    		//LED0 =!LED0;
 		   HAL_Delay(1000);
 	}
 

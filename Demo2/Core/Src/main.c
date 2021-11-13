@@ -20,10 +20,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "AD7799.h"
+#define IS_128
 unsigned	char	buf[4] = {0,0,0,0};
 AD7799    ad7799[3];
 #define   AD7799_GAIN  128					//如果增益为64倍,则这里改为64
-#define   AD7799_CHIP_GAIN  AD7799_GAIN_128 	//如果增益为64倍,则这里改为AD7799_GAIN_64
+// #define   AD7799_CHIP_GAIN  AD7799_GAIN_128 	//如果增益为64倍,则这里改为AD7799_GAIN_64
 
 #define   AD7799_RefmV    3300				//基准电压 3300mV	
 /* Private includes ----------------------------------------------------------*/
@@ -77,75 +78,86 @@ double analyzeAD7799_Data(u32 data)
 
 }
 //返回实际的称重值
+//adjustValue 是1000g的AD采样值
+// zeroValue 是0g的AD采样值
 double analyzeAD7799_g(u32 data)
 {
-	long value = (data - 0X800000)-0xbf;
-	return (float)((float)value*(float)1000)/(0X00192e-0xbf);	//0X00192e:1000g的AD值    0xbf:0g的AD值
+  #ifdef IS_128
+    long zeroValue=0x2e7d;
+    long adjustValue=0X064f02; 
+  #else
+     long zeroValue=0xbf;
+    long adjustValue=0X00192e;
+  #endif
+	long value = (data - 0X800000)-zeroValue;
+	return (float)((float)value*(float)1000)/(adjustValue-zeroValue);//0X00192e:1000g的AD值    0xbf:0g的AD值 AD7799_GAIN_2
+	// return (float)((float)value*(float)1000)/(0X064f02-0x2e7d);	//0X064f02:1000g的AD值    0xbf:0g的AD值 AD7799_GAIN_128
+  
 
 }
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void AD7799_test()
-{
+// void AD7799_test()
+// {
 	
-	u8 CurrentChannelValue=1;		//当前选择的是哪个通道,处于1~2 
-	u8 i;
-	long lADValue[2];
-	u8 ChannelBuf[2]={AD7799_CH_AIN1P_AIN1M,AD7799_CH_AIN2P_AIN2M};		//通道1  通道2
-	double ADValues[2];
-	char buff[256];
-	/*ad7799初始化*/
-	AD7799_gpio_init();
-	while(!AD7799_Init())
-	{
-			//LED0 = 0;
-			HAL_Delay(50);
-	}	
-  AD7799_Reset();
-	//LED0 = 1;
-	// AD7799_Calibrate();
+// 	u8 CurrentChannelValue=1;		//当前选择的是哪个通道,处于1~2 
+// 	u8 i;
+// 	long lADValue[2];
+// 	u8 ChannelBuf[2]={AD7799_CH_AIN1P_AIN1M,AD7799_CH_AIN2P_AIN2M};		//通道1  通道2
+// 	double ADValues[2];
+// 	char buff[256];
+// 	/*ad7799初始化*/
+// 	AD7799_gpio_init();
+// 	while(!AD7799_Init())
+// 	{
+// 			//LED0 = 0;
+// 			HAL_Delay(50);
+// 	}	
+//   AD7799_Reset();
+// 	//LED0 = 1;
+// 	// AD7799_Calibrate();
 
-	AD7799_SetGain(AD7799_CHIP_GAIN);		
-	// AD7799_SetBurnoutCurren(0);				//关闭BO
-	// AD7799_SetBufMode(0);					//由于我们要测的电压低于100mV,所以设置为Unbuffered Mode
-	// AD7799_SetPolar(1);
-	//AD7799_SetChannel(ChannelBuf[0]);		//通道设置.
-	AD7799_SetMode(AD7799_MODE_CONT,5);		//默认双极性   频率为5
-	AD7799_SetReference(1);					//关闭参考检测,因为我们的 AD7799_RefmV 参考电压低于0.5V
+// 	AD7799_SetGain(AD7799_CHIP_GAIN);		
+// 	// AD7799_SetBurnoutCurren(0);				//关闭BO
+// 	// AD7799_SetBufMode(0);					//由于我们要测的电压低于100mV,所以设置为Unbuffered Mode
+// 	// AD7799_SetPolar(1);
+// 	//AD7799_SetChannel(ChannelBuf[0]);		//通道设置.
+// 	AD7799_SetMode(AD7799_MODE_CONT,5);		//默认双极性   频率为5
+// 	AD7799_SetReference(1);					//关闭参考检测,因为我们的 AD7799_RefmV 参考电压低于0.5V
 	
-	while(1)
-	{
+// 	while(1)
+// 	{
 	
-			for(i=0;i<2;i++)
-			{
-		    AD7799_SetChannel(ChannelBuf[i]);//通道设置.		0~1
+// 			for(i=0;i<2;i++)
+// 			{
+// 		    AD7799_SetChannel(ChannelBuf[i]);//通道设置.		0~1
 				
-				HAL_Delay(10);
-				AD7799_GetRegisterValue(AD7799_REG_DATA,3);//清空之前的AD
+// 				HAL_Delay(10);
+// 				AD7799_GetRegisterValue(AD7799_REG_DATA,3);//清空之前的AD
 				
-				while( !AD7799_Ready())		//1~2
-				{
-					HAL_Delay(5);
-				}
-			  lADValue[i]=AD7799_GetRegisterValue(AD7799_REG_DATA,3);//0:通道1 1:通道2
-				ADValues[i]=  analyzeAD7799_Data(lADValue[i]);
-			}
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
-		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
-        sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv",lADValue[0], ADValues[0],lADValue[1],ADValues[1]);
-			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
-		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
+// 				while( !AD7799_Ready())		//1~2
+// 				{
+// 					HAL_Delay(5);
+// 				}
+// 			  lADValue[i]=AD7799_GetRegisterValue(AD7799_REG_DATA,3);//0:通道1 1:通道2
+// 				ADValues[i]=  analyzeAD7799_Data(lADValue[i]);
+// 			}
+// 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
+// 		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
+//         sprintf(buff, "AD1 = %x ,%.2f mv AD2= %x ,%.2f mv",lADValue[0], ADValues[0],lADValue[1],ADValues[1]);
+// 			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
+// 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 		
 				
-		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
+// 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);
 
-		   // LED0 =!LED0;
-		   HAL_Delay(1000);
-	}
+// 		   // LED0 =!LED0;
+// 		   HAL_Delay(1000);
+// 	}
 
-}
+// }
 /* USER CODE END 0 */
 /* USER CODE BEGIN 0 */
 void AD7799_test2()
@@ -176,10 +188,19 @@ void AD7799_test2()
 			HAL_Delay(50);
 	}	
   AD7799_Reset2(&ad7799[0]);
+  ad7799[0].mode = AD7799_MODE_CONT;
+  #ifdef IS_128
+	ad7799[0].gain = AD7799_GAIN_128;
+  #else
+   ad7799[0].gain = AD7799_GAIN_2;
+  #endif
+	ad7799[0].channel = AD7799_CH_AIN1P_AIN1M;
+	ad7799[0].polarity = AD7799_BIPOLAR;
+	ad7799[0].rate = AD7799_RATE_4_17HZ_74DB;
 	//LED0 = 1;
 	//AD7799_Calibrate();
 // AD7799_SetBurnoutCurren(0);				//关闭BO
-	AD7799_SetGain2(&ad7799[0],ad7799[0].gain);		//128位
+	AD7799_SetGain2(&ad7799[0],ad7799[0].gain);		//
   AD7799_SetPolarity2(&ad7799[0],ad7799[0].polarity);//双极性
   AD7799_SetRate2(&ad7799[0],ad7799[0].rate);//采样率 4.17hz
 	//AD7799_SetBurnoutCurren2(0);				//关闭BO
@@ -209,7 +230,7 @@ void AD7799_test2()
 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_SET);
 		   // HAL_UART_Transmit(&huart1,(uint8_t *)&lADValue[0],4,1000);
         sprintf(buff, "AD2= %x ,%.3f mv %.1f g gain=%d",
-        lADValue[1], ADValues[1],ADValues_g[1],1<<ad7799[1].gain);
+        lADValue[1], ADValues[1],ADValues_g[1],1<<ad7799[0].gain);
 			  HAL_UART_Transmit(&huart1,(uint8_t *)buff,strlen(buff),1000);
 		    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8,GPIO_PIN_RESET);
 		//	printf("当前通道为:%d %.3fmV %.3fmV \r\n",CurrentChannelValue,ADValues[0],ADValues[1]);

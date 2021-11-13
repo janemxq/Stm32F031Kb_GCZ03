@@ -586,11 +586,7 @@ void AD7799_Reset2(AD7799 *ad7799) {
 	SPI_Write2(dataToSend,4,ad7799);
 	HAL_GPIO_WritePin(ad7799->CSPort, ad7799->CSPin, GPIO_PIN_SET);
 
-	ad7799->mode = AD7799_MODE_CONT;
-	ad7799->gain = AD7799_GAIN_2;
-	ad7799->channel = AD7799_CH_AIN1P_AIN1M;
-	ad7799->polarity = AD7799_BIPOLAR;
-	ad7799->rate = AD7799_RATE_4_17HZ_74DB;
+
 }
 
 /**
